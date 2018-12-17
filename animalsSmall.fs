@@ -4,7 +4,7 @@ open System.Runtime.InteropServices
 type symbol = char
 type position = int * int
 type neighbour = position * symbol
-
+//hej
 let mSymbol : symbol = 'm'
 let wSymbol : symbol = 'w'
 let eSymbol : symbol = ' '
