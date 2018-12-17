@@ -1,10 +1,11 @@
 module animals
 open System.Runtime.InteropServices
+open System.Net
 
 type symbol = char
 type position = int * int
 type neighbour = position * symbol
-//hej
+
 let mSymbol : symbol = 'm'
 let wSymbol : symbol = 'w'
 let eSymbol : symbol = ' '
@@ -96,27 +97,29 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
   do for w in _board.wolves do
        w.position <- Some (anyEmptyField _board)
 
+  member this.upperCaster (ani : 'a) : animal = ani :> animal
+  member this.givePos ((x, y): position) (ani : animal) (charArray : char [,])= 
+    let mutable noAvailablePosition = true
+    let mutable positions = []
+    for i = x-1 to x+1 do 
+      for j = y-1 to y+1 do
+        if i > -1 && i < this.board.width && j > -1 && j < this.board.width && not(i = x && j = y) then
+          if charArray.[i, j] = eSymbol then 
+            positions <- Some (i, j) :: positions
+            noAvailablePosition <- false
+    if noAvailablePosition then ani.position <- None
+    else
+      let i = rnd.Next(0, positions.Length)
+      ani.position <- positions.[i]
+    
+      
   member this.size = boardWidth*boardWidth
   member this.count = _board.moose.Length + _board.wolves.Length
   member this.board = _board
   member this.tick () = 
     let w = this.board.wolves.[0]
     let m = this.board.moose.[0]
-    let availablePos (x, y) : position option = 
-      Some (x, y)
-
-    match m.tick() with
-    | Some moo -> 
-      this.board.moose <- moo :: this.board.moose
-      match availablePos m.position with
-      | Some p -> moo.position <- p
-      | None        ->
-    | None     -> printfn "updated"
-
-    match w.tick() with
-    | Some wol  ->
-      
-    | None      ->
+    
     () // Intentionally left blank. Insert code that process animals here.
 
   override this.ToString () =
