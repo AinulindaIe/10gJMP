@@ -54,7 +54,7 @@ type wolf (repLen : int, hungLen : int) =
   member this.tick () : wolf option =
     this.updateReproduction()
     this.updateHunger()
-    if this.reproduction = 0 then Some (new wolf(repLen, hungLen))
+    if this.reproduction = 0 && this.hunger > 0 then Some (new wolf(repLen, hungLen))
     else None
     // Intentionally left blank. Insert code that updates the wolf's age and optionally an offspring.
 
@@ -90,8 +90,8 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
       i <- rnd.Next b.width
       j <- rnd.Next b.width
     (i,j)
-
-  // Shuffels moose and wolf list
+  
+    // Shuffels moose and wolf list
   let shuffleList (xs : 'a list) : 'a list =
     let listToArr = List.toArray xs
     let swap (a: _[]) x y =
@@ -107,31 +107,106 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
   do for w in _board.wolves do
        w.position <- Some (anyEmptyField _board)
 
-  // Finds free postitions around an animal
-  member this.upperCaster (ani : 'a) : animal = ani :> animal
-  member this.givePos ((x, y): position) (ani : animal) (charArray : char [,])= 
-    let mutable noAvailablePosition = true
-    let mutable positions = []
-    for i = x-1 to x+1 do 
-      for j = y-1 to y+1 do
-        if i > -1 && i < this.board.width && j > -1 && j < this.board.width && not(i = x && j = y) then
-          if charArray.[i, j] = eSymbol then 
-            positions <- Some (i, j) :: positions
-            noAvailablePosition <- false
-    if noAvailablePosition then ani.position <- None
-    else
-      let i = rnd.Next(0, positions.Length)
-      ani.position <- positions.[i]
-    
-      
   member this.size = boardWidth*boardWidth
   member this.count = _board.moose.Length + _board.wolves.Length
   member this.board = _board
-  member this.tick () = 
-    let w = this.board.wolves.[0]
-    let m = this.board.moose.[0]
+
+  member this.givePos (p : position) (charArray : char [,]) (sym : symbol) : position option list option  = 
+    let mutable positions = []
+    let x, y = fst p, snd p
+    for i = x-1 to x+1 do 
+      for j = y-1 to y+1 do
+        if i > -1 && i < this.board.width && j > -1 && j < this.board.width && not(i = x && j = y) then
+          if charArray.[i, j] = sym then 
+            positions <- Some (i, j) :: positions
+ 
+    if positions.IsEmpty then None
+    else Some positions
+
+  member this.mooseMethod (m : moose) (boardState : char [,]) =
+    match m.position with
+    | Some p ->
+      let mPosOptions = this.givePos p boardState eSymbol
+      match mPosOptions with 
+      | Some pList ->
+        match m.tick() with
+        | Some moo -> 
+          moo.position <- pList.[rnd.Next(0, pList.Length-1)]
+          this.board.moose <- moo :: this.board.moose
+        | None            ->
+          m.position <- pList.[rnd.Next(0, pList.Length-1)]
+      | None       -> printfn "No available position"
+    | None   -> printfn "I'm dead"
     
-    () // Intentionally left blank. Insert code that process animals here.
+  member this.wolfMethod (w : wolf) (boardState : char [,]) = 
+    match w.position with
+    | Some p -> 
+      let wEatPosOptions    = this.givePos p boardState mSymbol
+      let wPosOptions  = this.givePos p boardState eSymbol 
+      match w.tick() with
+      | Some wol  ->
+        match wPosOptions with
+        | Some pList -> 
+          wol.position <- pList.[rnd.Next(0, pList.Length)]
+          this.board.wolves <- wol :: this.board.wolves
+        | None       -> printfn "no available position to breed"
+      | None      ->
+        if w.hunger > 0 then
+          match wEatPosOptions with
+          | Some pList  ->  
+            let poorSoulPos = pList.[rnd.Next(0, pList.Length)]
+            match poorSoulPos with
+            | Some pspos ->
+              let poorSoul = List.find (fun (x:moose) -> match x.position with | Some px -> pspos=px | None -> false) this.board.moose
+              poorSoul.position <- None
+              w.position <- Some pspos
+            | _ -> printfn "never gonna happen"
+          | None    -> 
+            printfn "nothing to eat"
+            match wPosOptions with
+            | Some pList -> w.position <- pList.[rnd.Next(0, pList.Length)]
+            | None    -> printfn "can't move :("
+    | None   -> printfn "I'm dead"
+    
+  member this.tick () = 
+
+    let boardState = draw this.board
+    let mutable scrambledWolves = shuffleList this.board.wolves
+    let mutable scrambledMoose  = shuffleList this.board.moose
+    for i = 1 to this.count do
+      
+      let mutable choice = 0
+      match rnd.Next(0,1) with
+      | 0 -> if scrambledMoose.IsEmpty  then  choice <- 1 else choice  <- 0
+      | _ -> if scrambledWolves.IsEmpty then  choice <- 0 else choice  <- 1
+       
+      match choice with
+      | 0 -> 
+        let m = scrambledMoose.Head
+        scrambledMoose <- scrambledMoose.Tail
+        this.mooseMethod m boardState
+      | _ -> 
+        let w = scrambledWolves.Head
+        scrambledWolves <- scrambledWolves.Tail
+        this.wolfMethod w boardState
+      
+    let rec rmvMoose (moos : moose list) : moose list =
+      match moos with
+      | [] -> []
+      | m::moo ->
+        if m.position = None then rmvMoose moo
+        else m :: (rmvMoose moo)
+
+    let rec rmvWolves (wol : wolf list) : wolf list =
+      match wol with
+      | [] -> []
+      | w::wo ->
+        if w.position = None then rmvWolves wo
+        else w :: (rmvWolves wo)
+
+    this.board.moose  <- rmvMoose this.board.moose
+    this.board.wolves <- rmvWolves this.board.wolves
+    // Intentionally left blank. Insert code that process animals here.
 
   override this.ToString () =
     let arr = draw _board
@@ -145,4 +220,3 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
         ret <- ret + string arr.[i,j] + " "
       ret <- ret + "\n"
     ret
-
