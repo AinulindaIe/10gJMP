@@ -147,14 +147,14 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
       | Some wol  ->
         match wPosOptions with
         | Some pList -> 
-          wol.position <- pList.[rnd.Next(0, pList.Length)]
+          wol.position <- pList.[rnd.Next(0, pList.Length - 1)]
           this.board.wolves <- wol :: this.board.wolves
         | None       -> printfn "no available position to breed"
       | None      ->
         if w.hunger > 0 then
           match wEatPosOptions with
           | Some pList  ->  
-            let poorSoulPos = pList.[rnd.Next(0, pList.Length)]
+            let poorSoulPos = pList.[rnd.Next(0, pList.Length - 1)]
             match poorSoulPos with
             | Some pspos ->
               let poorSoul = List.find (fun (x:moose) -> match x.position with | Some px -> pspos=px | None -> false) this.board.moose
@@ -164,7 +164,7 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
           | None    -> 
             printfn "nothing to eat"
             match wPosOptions with
-            | Some pList -> w.position <- pList.[rnd.Next(0, pList.Length)]
+            | Some pList -> w.position <- pList.[rnd.Next(0, pList.Length - 1)]
             | None    -> printfn "can't move :("
     | None   -> printfn "I'm dead"
     
