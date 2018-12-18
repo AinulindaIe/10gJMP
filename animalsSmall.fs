@@ -91,12 +91,23 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
       j <- rnd.Next b.width
     (i,j)
 
+  // Shuffels moose and wolf list
+  let shuffleList (xs : 'a list) : 'a list =
+    let listToArr = List.toArray xs
+    let swap (a: _[]) x y =
+      let tmp = a.[x]
+      a.[x] <- a.[y]
+      a.[y] <- tmp
+    Array.iteri (fun i _ -> swap listToArr i (rnd.Next(i, Array.length listToArr))) listToArr
+    Array.toList listToArr
+
   // populate the board with animals placed at random.
   do for m in _board.moose do
        m.position <- Some (anyEmptyField _board)
   do for w in _board.wolves do
        w.position <- Some (anyEmptyField _board)
 
+  // Finds free postitions around an animal
   member this.upperCaster (ani : 'a) : animal = ani :> animal
   member this.givePos ((x, y): position) (ani : animal) (charArray : char [,])= 
     let mutable noAvailablePosition = true
@@ -134,3 +145,4 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
         ret <- ret + string arr.[i,j] + " "
       ret <- ret + "\n"
     ret
+
