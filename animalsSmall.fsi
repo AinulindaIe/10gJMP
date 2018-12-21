@@ -95,8 +95,6 @@ type environment =
     member count : int
     /// The positions on the board.
     member size : int
-    /// If the environment is verbose, print the key events.
-    //member verbPrint : string -> unit
     /// Checks the positions on the board, around the given position and returns any given symbols in the area.
     member
       givePos : p:position ->
