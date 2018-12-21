@@ -225,8 +225,8 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
       ret <- ret + "\n"
     ret
 
-let listToString (lst) : string =
-  List.fold (fun acc (m, w) -> sprintf "%s(%A,%A)" acc m w) "" lst
+//let listToString (lst) : string =
+//  List.fold (fun acc (m, w) -> sprintf "%s(%A,%A)" acc m w) "" lst
 
 let plotify (lst) (mrl : int) (wrl : int) (whl : int) : string =
   let mutable moosestr = ""
@@ -273,7 +273,7 @@ for i = 10 to 15 do
       envi.tick()
     str <- str + "\n" + (plotify lst i j 5)
 //Define the filepath to the file in which to save
-let filepath = "C:\Users\Pelle Rubin Galløe\Desktop\DIKU\PoP\47.12.uge/" + "latexPlots.tex"
+let filepath = "latexPlots.tex"
 let sw = new StreamWriter(filepath)
 sw.Write("\\documentclass{article}\n\\usepackage{tikz}\n\\usepackage{pgfplots}\n\\begin{document}\n")
 sw.Write(str)
