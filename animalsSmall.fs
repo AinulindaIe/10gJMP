@@ -54,9 +54,8 @@ type wolf (repLen : int, hungLen : int) =
   member this.tick () : wolf option =
     this.updateReproduction()
     this.updateHunger()
-    if this.reproduction = 0 && this.hunger > 0 then Some (new wolf(repLen, hungLen))
+    if this.reproduction = 0 && this.hunger > 0 then Some (new wolf(repLen, hungLen)) // Reproduce
     else None
-    // Intentionally left blank. Insert code that updates the wolf's age and optionally an offspring.
 
 /// A board is a chess-like board implicitly representedy by its width and coordinates of the animals.
 type board =
@@ -111,6 +110,7 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
   member this.count = _board.moose.Length + _board.wolves.Length
   member this.board = _board
 
+  // find the positions around a given position (in the charArray) where the character is the symbol. Return that list as a Option type (or None)
   member this.givePos (p : position) (charArray : char [,]) (sym : symbol) : position option list option  =
     let mutable positions = []
     let x, y = p
@@ -123,6 +123,11 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
     if positions.IsEmpty then None
     else Some positions
 
+  //If the environment is verbose prints the string
+  member this.verbPrint (s:string) : unit =
+    if verbose then printfn "%s" s
+
+  // Decide and carry out what action the moose needs to perform. 
   member this.mooseMethod (m : moose) (boardState : char [,]) =
     match m.position with
     | Some p ->
@@ -133,13 +138,14 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
         | Some moo ->
           moo.position <- pList.[rnd.Next(0, pList.Length-1)]
           this.board.moose <- moo :: this.board.moose
-          if verbose then printfn "brought a moose to life"
+          this.verbPrint "brought a moose to life"
         | None            ->
           m.position <- pList.[rnd.Next(0, pList.Length-1)]
       | None       -> ()
-    | None   -> if verbose then printfn "I'm dead :("
+    | None   -> this.verbPrint "I'm dead :("
 
-  member this.wolfMethod (w : wolf) (boardState : char [,]) =
+  // Decide and carry out what action the wolf needs to perform. 
+  member this.wolfMethod (w : wolf) (boardState : char [,]) : unit =
     match w.position with
     | Some p ->
       let wEatPosOptions    = this.givePos p boardState mSymbol
@@ -150,7 +156,7 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
         | Some pList ->
           wol.position <- pList.[rnd.Next(0, pList.Length - 1)]
           this.board.wolves <- wol :: this.board.wolves
-          if verbose then printfn "I brought a wolf to life"
+          this.verbPrint "I brought a wolf to life"
         | None       -> ()
       | None      ->
         if w.hunger > 0 then
@@ -167,8 +173,10 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
             match wPosOptions with
             | Some pList -> w.position <- pList.[rnd.Next(0, pList.Length - 1)]
             | None    -> ()
-    | None   -> if verbose then printfn "I'm dead :("
+    | None   -> this.verbPrint "I'm dead :("
+    ()
 
+  // Go through every animal on the board randomly and call their method. Remove the dead animals afterwards.
   member this.tick () =
 
     let mutable scrambledWolves = shuffleList this.board.wolves
@@ -208,8 +216,8 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
 
     this.board.moose  <- rmvMoose this.board.moose
     this.board.wolves <- rmvWolves this.board.wolves
-    // Intentionally left blank. Insert code that process animals here.
 
+  // produces a string from the boardstate
   override this.ToString () =
     let arr = draw _board
     let mutable ret = "  "

@@ -95,18 +95,58 @@ type environment =
     member count : int
     /// The positions on the board.
     member size : int
-    /// If the environment is verbose, print the key events.
-    //member verbPrint : string -> unit
-    /// Checks the positions on the board, around the given position and returns any given symbols in the area.
+
+    /// <summary>Checks the positions on the board, around the given position and returns a list of any given positions in the area
+    /// that match the symbol.</summary>
+    /// <param name="p">Position indicating the area (positions) to check</param>
+    /// <param name="charArray">A char[,] used to check for symbols</param>
+    /// <param name="sym">symbol to check for in the area</param>
+    /// <returns>A positioin option list option. Some list if this list contains elements, None if it's empty</returns>
     member
       givePos : p:position ->
                   charArray:char [,] ->
                     sym:symbol -> position option list option
-    /// Perform the actions of a moose in a tick                
+
+    /// <summary>If the environment is verbose then print the string</summary>
+    /// <param name="s">String to print</param>
+    member verbPrint : string -> unit
+
+                    
+    /// <summary>Perform the appropiate action of a moose in a tick and updates the list of mooses in _board.
+    /// it checks if the moose is alive. If so then we check if there are any available positions. If so then we check if 
+    /// we need to breed or not. If so then breed otherwise move. if there is no available positions just perform the moose.tick.
+    /// if the moose is dead then don't do anything (unless verbose).
+    /// </summary>
+    /// <param name="m">The moose which action to decide and perform</param>
+    /// <param name="boardState">a char[,] to find appropiate positions on (decided by what action to take)</param>
+    /// <returns>unit</returns>
     member mooseMethod : m:moose -> boardState:char [,] -> unit
-    /// Perform the actions of a wolf in a tick
+
+    /// <summary>Perform the appropiate action of a wolf in a tick and updates the list of wolves in _board.
+    /// first we check if the wolf is alive.
+    ///   if so then check if we need to breed
+    ///     if so then check if there is available positions
+    ///       if so then breed at that position
+    ///   otherwise check if we can eat
+    ///     if so then eat
+    ///   otherwise check if we can move
+    ///       if so then move
+    ///   otherwise just perform the wolf.tick
+    /// otherwise dont' do anything (unless verbose).
+    /// </summary>
+    /// <param name="m">The wolf which action to decide and perform</param>
+    /// <param name="boardState">a char[,] to find appropiate positions on (decided by what action to take)</param>
+    /// <returns>unit</returns>
     member wolfMethod : w:wolf -> boardState:char [,] -> unit
-    /// Perform a tick by performing all animal's ticks in random order. Animals perform the following actions: Calves and cubs are added if there is room in a neighbouring position. Wolves eat a random Moose in a neighbouring position. If animals do not give birth, eat or are eaten, then they move to an available neighbouring position.
+
+    
+    /// <summary> Perform a tick by performing all animal's ticks in random order. 
+    /// Animals perform the following actions: 
+    ///   - Calves and cubs are added if there is room in a neighbouring position. 
+    ///   - Wolves eat a random Moose in a neighbouring position. 
+    ///   - If animals do not give birth, eat or are eaten, then they move to an available neighbouring position.
+    /// </summary>
+    /// <returns>unit</returns>
     member tick : unit -> unit
   end
 
