@@ -113,7 +113,7 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
 
   member this.givePos (p : position) (charArray : char [,]) (sym : symbol) : position option list option  =
     let mutable positions = []
-    let x, y = fst p, snd p
+    let x, y = p
     for i = x-1 to x+1 do
       for j = y-1 to y+1 do
         if i > -1 && i < this.board.width && j > -1 && j < this.board.width && not(i = x && j = y) then
@@ -133,10 +133,11 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
         | Some moo ->
           moo.position <- pList.[rnd.Next(0, pList.Length-1)]
           this.board.moose <- moo :: this.board.moose
+          if verbose then printfn "brought a moose to life"
         | None            ->
           m.position <- pList.[rnd.Next(0, pList.Length-1)]
-      | None       -> printfn "No available position"
-    | None   -> printfn "I'm dead"
+      | None       -> ()
+    | None   -> if verbose then printfn "I'm dead :("
 
   member this.wolfMethod (w : wolf) (boardState : char [,]) =
     match w.position with
@@ -149,7 +150,8 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
         | Some pList ->
           wol.position <- pList.[rnd.Next(0, pList.Length - 1)]
           this.board.wolves <- wol :: this.board.wolves
-        | None       -> printfn "no available position to breed"
+          if verbose then printfn "I brought a wolf to life"
+        | None       -> ()
       | None      ->
         if w.hunger > 0 then
           match wEatPosOptions with
@@ -160,18 +162,18 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
               let poorSoul = List.find (fun (x:moose) -> match x.position with | Some px -> pspos=px | None -> false) this.board.moose
               poorSoul.position <- None
               w.position <- Some pspos
-            | _ -> printfn "never gonna happen"
+            | _ -> ()
           | None    ->
-            printfn "nothing to eat"
             match wPosOptions with
             | Some pList -> w.position <- pList.[rnd.Next(0, pList.Length - 1)]
-            | None    -> printfn "can't move :("
-    | None   -> printfn "I'm dead"
+            | None    -> ()
+    | None   -> if verbose then printfn "I'm dead :("
 
   member this.tick () =
 
     let mutable scrambledWolves = shuffleList this.board.wolves
     let mutable scrambledMoose  = shuffleList this.board.moose
+
     for i = 1 to this.count do
       let boardState = draw this.board
 
