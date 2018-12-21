@@ -1,0 +1,14 @@
+\documentclass{article}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\begin{document}
+
+	\begin{tikzpicture}
+ 		\begin{axis}[xmin = 0, xmax = 51, ymin = 0, ymax = 200, xlabel=tick, ylabel=animals]
+			\addplot[color=brown] coordinates {(1,15)(2,18)(3,18)(4,22)(5,34)(6,37)(7,42)(8,45)(9,48)(10,54)(11,59)(12,64)(13,70)(14,73)(15,79)(16,82)(17,85)(18,93)(19,96)(20,98)(21,105)};
+			\addlegendentry{Moose}
+			\addplot[color=red]   coordinates {(1,30)(2,31)(3,34)(4,36)(5,40)(6,12)(7,12)(8,10)(9,8)(10,5)(11,3)(12,2)(13,1)(14,1)(15,0)(16,0)(17,0)(18,0)(19,0)(20,0)(21,0)};
+			\addlegendentry{Wolf}
+		\end{axis}
+	\end{tikzpicture}
+\end{document}
