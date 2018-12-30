@@ -222,54 +222,111 @@ type environment (boardWidth : int, NMooses : int, mooseRepLen : int, NWolves : 
 // open System.Runtime.InteropServices
 // open System.Net
 
-type mooseTester(i:int) =
-    let repLen = 10
+// Test af animal og moose funktioner
+type mooseTester(_repLen:int) =
+    let repLen = _repLen
     member this.testUpdateReproduction() = 
         let animalToTest = new moose(repLen)
         let tempReproductionVal = animalToTest.reproduction
         animalToTest.updateReproduction()
         printfn "Update Reproduction tests"
-        printfn "Equality minus 1: %b" ((tempReproductionVal - 1) = animalToTest.reproduction)
+        printfn "Equality to repLen minus 1: %b" ((tempReproductionVal - 1) = animalToTest.reproduction)
     member this.testResetReproduction() = 
         let animalToTest = new moose(repLen)
         animalToTest.resetReproduction()
         printfn "Update Reproduction tests"
         printfn "Equality to repLen: %b" (animalToTest.reproduction = repLen)
-        
+    member this.testMooseTick() =
+        let animalToTest = new moose(repLen)
+        let mutable iter = 0
+        let mutable born = false
+        while iter <= repLen && born = false do
+          if not (animalToTest.tick() = None) then
+            born <- true
+            printfn "Animal born: %A" born
+            iter <- iter + 1
+          else 
+            printfn "Animal born: %A" born
+            iter <- iter + 1
+          
+// test af animal og wolf metoder
+type wolfTester (_hungLen:int) = 
+    let hungLen = _hungLen
+    let repLen = 10
+    member this.testUpdateHunger() =
+      let wolfToTest = new wolf(repLen, hungLen)
+      wolfToTest.updateHunger()
+      printfn "Equality to hungLen minus 1: %b" (wolfToTest.hunger = hungLen - 1)
+    member this.testResetHunger() =
+      let wolfToTest = new wolf(repLen, hungLen)
+      wolfToTest.updateHunger()
+      wolfToTest.resetHunger()
+      printfn "Hunger is equal to hungLen: %b" (wolfToTest.hunger = hungLen)
+    member this.testWolfTick() =
+      let wolfToTest = new wolf(repLen, hungLen)
+      let mutable iter = 0
+      let mutable born = false
+      while iter <= repLen && born = false do
+        if not (wolfToTest.tick() = None) then
+          born <- true
+          printfn "Wolf born: %b" born
+          iter <- iter + 1
+        else
+          printfn "Wolf is born: %b" born
+          iter <- iter + 1
 
-        
+// Test af environment funktioner og metoder
+type environmentTester(i:int) =
+  member this.testGivePos() = 
+    let environmentToTest = new environment(3,2,10,2,10,10,false)   
+    let testArr = Array2D.create<char> (environmentToTest.board.width) (environmentToTest.board.width) eSymbol
+    testArr.[2,0] <- mSymbol
+    printfn "%A" testArr
+    printfn "Finder symboler på plads: %A" (environmentToTest.givePos(1,1) testArr mSymbol)
+  member this.testMooseMethod() =
+    let pos = Some (1,1)
+    let mooseToTest = new moose(10)
+    mooseToTest.position <- pos
+    let environmentToTest = new environment(3,2,10,2,10,10,false)
+    let filledArr = Array2D.create<char> (environmentToTest.board.width) (environmentToTest.board.width) mSymbol
+    printfn "%A" filledArr    
+    environmentToTest.mooseMethod mooseToTest filledArr // returns "no available position"
+    // Tests when array not filled
+    let emptyArr = Array2D.create<char> (environmentToTest.board.width) (environmentToTest.board.width) eSymbol
+    printfn "%A" emptyArr
+    environmentToTest.mooseMethod mooseToTest emptyArr
+    printfn "Moose has moved in empty array: %b" (mooseToTest.position <> pos)
+  member this.testWolfMethod() =
+    let environmentToTest = new environment(3,2,10,2,10,10,false)
+    let wolfToTest = new wolf (10,10)
+    let pos = Some (1,1)
+    wolfToTest.position <- pos
+    let testArr = Array2D.create<char> (environmentToTest.board.width) (environmentToTest.board.width) eSymbol
+    testArr.[0,0] <- mSymbol
+    printfn "%A" testArr
+    environmentToTest.wolfMethod wolfToTest testArr
+    printfn "%A" wolfToTest.position
+    
 
-let mooseIsTest = mooseTester(1)
+// Test for moose and animal methods
+let mooseIsTest = mooseTester(10)
 mooseIsTest.testUpdateReproduction()
 mooseIsTest.testResetReproduction()
-///animal type tests
+// testMooseTick() outputter mange linjer i terminalen
+mooseIsTest.testMooseTick()
+ 
+let wolfIsTest = wolfTester(10)
+wolfIsTest.testUpdateHunger()
+wolfIsTest.testResetHunger()
+// testWolfTick outputter mange linjer i terminalen
+wolfIsTest.testWolfTick()
 
-/// tostring test:
-
-/// resetReproduction:
- 
-/// updateReproduction:
- 
-/// Moose type tests
-/// Moose Tick test:
-
- 
-/// Wolf type tests
-/// resetHunger test:
- 
-/// updateHunger test:
- 
-/// Wolf Tick test:
- 
-/// Environment type tests
-/// ToString(?) test:
-
-/// GivePos test:
- 
-/// mooseMethod test:
- 
+let environmentIsTest = environmentTester(10)
+// testGivePos outputter en tabel i terminalen
+environmentIsTest.testGivePos()
+environmentIsTest.testMooseMethod()
+environmentIsTest.testWolfMethod()
 /// WolfMethod test:
  
-/// Environment Tick test:
  
  
